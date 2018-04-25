@@ -18,7 +18,7 @@ public class MountainReaderDbHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(MountainReaderContract.SQL_CREATE);
-        Log.d("a17johpe", MountainReaderContract.SQL_CREATE);
+        Log.d("olle", MountainReaderContract.SQL_CREATE);
     }
 
     @Override

@@ -37,4 +37,9 @@ public class Mountain {
     public String toString() {
         return name;
     }
+
+    public String info() {
+        String str = "Name: " + name + "\n" + "Location: " + location + "\n" + "Height: " + height + " m";
+        return str;
+    }
 }
