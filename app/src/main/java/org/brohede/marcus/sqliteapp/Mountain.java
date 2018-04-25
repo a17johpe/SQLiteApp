@@ -13,4 +13,28 @@ public class Mountain {
     // height
     // img_url
     // info_url
+    private String name;
+    private String location;
+    private int height;
+    private String imgUrl;
+    private String infoUrl;
+
+    public Mountain (String inName, String inLocation, int inHeight, String inImgUrl, String inInfoUrl) {
+        name = inName;
+        location = inLocation;
+        height = inHeight;
+        imgUrl = inImgUrl;
+        infoUrl = inInfoUrl;
+    }
+
+    public Mountain (String inName, String inLocation, int inHeight) {
+        name = inName;
+        location = inLocation;
+        height = inHeight;
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }
