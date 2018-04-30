@@ -8,6 +8,9 @@ import android.provider.BaseColumns;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -31,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private List<Mountain> mountainData = new ArrayList<Mountain>();
     private ArrayAdapter adapter;
     MountainReaderDbHelper kjell;
+    private boolean isAscending = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +56,18 @@ public class MainActivity extends AppCompatActivity {
 
         //DATABASE
         kjell = new MountainReaderDbHelper(getApplicationContext());
+        rereadFromDatabase();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inf = getMenuInflater();
+        inf.inflate(R.menu.sort_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    public void rereadFromDatabase () {
+        adapter.clear();
         SQLiteDatabase dbRead = kjell.getReadableDatabase();
 
         // Define a projection that specifies which columns from the database
@@ -68,8 +84,13 @@ public class MainActivity extends AppCompatActivity {
         //String[] selectionArgs = { "Matterhorn" };
 
         // How you want the results sorted in the resulting Cursor
-        String sortOrder =
-                MountainReaderContract.MountainEntry.COLUMN_NAME_NAME + " DESC";
+        String sortOrder;
+        if (isAscending) {
+            sortOrder = MountainReaderContract.MountainEntry.COLUMN_NAME_NAME + " ASC";}
+        else {
+            sortOrder =
+                    MountainReaderContract.MountainEntry.COLUMN_NAME_NAME + " DESC";
+        }
 
         Cursor cursor = dbRead.query(
                 MountainReaderContract.MountainEntry.TABLE_NAME,   // The table to query
@@ -82,14 +103,44 @@ public class MainActivity extends AppCompatActivity {
         );
 
         while(cursor.moveToNext()) {
-                String mountainName = cursor.getString(cursor.getColumnIndexOrThrow(MountainReaderContract.MountainEntry.COLUMN_NAME_NAME));
-                String mountainLocation = cursor.getString(cursor.getColumnIndexOrThrow(MountainReaderContract.MountainEntry.COLUMN_NAME_LOCATION));
-                int mountainHeight = cursor.getInt(cursor.getColumnIndexOrThrow(MountainReaderContract.MountainEntry.COLUMN_NAME_HEIGHT));
+            String mountainName = cursor.getString(cursor.getColumnIndexOrThrow(MountainReaderContract.MountainEntry.COLUMN_NAME_NAME));
+            String mountainLocation = cursor.getString(cursor.getColumnIndexOrThrow(MountainReaderContract.MountainEntry.COLUMN_NAME_LOCATION));
+            int mountainHeight = cursor.getInt(cursor.getColumnIndexOrThrow(MountainReaderContract.MountainEntry.COLUMN_NAME_HEIGHT));
 
-                Mountain m = new Mountain(mountainName, mountainLocation, mountainHeight);
-                adapter.add(m);
-            }
+            Mountain m = new Mountain(mountainName, mountainLocation, mountainHeight);
+            adapter.add(m);
+        }
         cursor.close();
+    }
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem checkable = menu.findItem(R.id.sort_name);
+        checkable.setChecked(isAscending);
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+            case R.id.sort_name:
+                Log.d("olle1", "v: " + isAscending);
+                if (item.isChecked()) {
+                    item.setChecked(false);
+                }
+                else {
+                    item.setChecked(true);
+                }
+                isAscending = item.isChecked();
+                Log.d("olle1", "v: " + isAscending);
+                rereadFromDatabase();
+                return true;
+            case R.id.sort_height:
+                rereadFromDatabase();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
 
