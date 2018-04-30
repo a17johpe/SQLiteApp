@@ -29,7 +29,6 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private List<Mountain> mountainData = new ArrayList<Mountain>();
-    List itemIds = new ArrayList<>();
     private ArrayAdapter adapter;
     MountainReaderDbHelper kjell;
 
@@ -38,11 +37,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         new FetchData().execute();
-
-        Mountain berg = new Mountain("K2", "Dunno", 53);
-        Mountain berg2 = new Mountain("K3", "UUUUUH", 42);
-        mountainData.add(berg);
-        mountainData.add(berg2);
 
         adapter = new ArrayAdapter(getApplicationContext(), R.layout.list_item_textview, R.id.my_item_textview, mountainData);
         ListView myListView = (ListView) findViewById(R.id.my_listview);
@@ -70,8 +64,8 @@ public class MainActivity extends AppCompatActivity {
         };
 
         // Filter results WHERE "title" = 'My Title'
-        String selection = MountainReaderContract.MountainEntry.COLUMN_NAME_NAME + " = ?";
-        String[] selectionArgs = { "Matterhorn" };
+        //String selection = MountainReaderContract.MountainEntry.COLUMN_NAME_NAME + " = ?";
+        //String[] selectionArgs = { "Matterhorn" };
 
         // How you want the results sorted in the resulting Cursor
         String sortOrder =
@@ -80,18 +74,20 @@ public class MainActivity extends AppCompatActivity {
         Cursor cursor = dbRead.query(
                 MountainReaderContract.MountainEntry.TABLE_NAME,   // The table to query
                 projection,             // The array of columns to return (pass null to get all)
-                selection,              // The columns for the WHERE clause
-                selectionArgs,          // The values for the WHERE clause
+                null,              // The columns for the WHERE clause
+                null,          // The values for the WHERE clause
                 null,                   // don't group the rows
                 null,                   // don't filter by row groups
                 sortOrder               // The sort order
         );
 
         while(cursor.moveToNext()) {
-                long itemId = cursor.getLong(
-                        cursor.getColumnIndexOrThrow(MountainReaderContract.MountainEntry._ID));
-                //itemIds.add(itemId);
-                Log.d("klabbe", cursor.getString(cursor.getColumnIndexOrThrow(MountainReaderContract.MountainEntry.COLUMN_NAME_HEIGHT)));
+                String mountainName = cursor.getString(cursor.getColumnIndexOrThrow(MountainReaderContract.MountainEntry.COLUMN_NAME_NAME));
+                String mountainLocation = cursor.getString(cursor.getColumnIndexOrThrow(MountainReaderContract.MountainEntry.COLUMN_NAME_LOCATION));
+                int mountainHeight = cursor.getInt(cursor.getColumnIndexOrThrow(MountainReaderContract.MountainEntry.COLUMN_NAME_HEIGHT));
+
+                Mountain m = new Mountain(mountainName, mountainLocation, mountainHeight);
+                adapter.add(m);
             }
         cursor.close();
     }
@@ -169,7 +165,6 @@ public class MainActivity extends AppCompatActivity {
             // of our newly created Mountain class.
             try {
                 JSONArray json1 = new JSONArray(o);
-                adapter.clear();
                 // Gets the data repository in write mode
                 SQLiteDatabase dbWrite = kjell.getWritableDatabase();
 
@@ -184,9 +179,6 @@ public class MainActivity extends AppCompatActivity {
                     int mountainSize = berg.getInt("size");
                     //int mountainCost = berg.getInt("cost");
                     //JSONArray mountainAuxdata = berg.getJSONArray("auxdata");
-
-                    Mountain m = new Mountain(mountainName, mountainLocation, mountainSize);
-                    adapter.add(m);
 
                     //DATABASE STUFF
                     // Create a new map of values, where column names are the keys
