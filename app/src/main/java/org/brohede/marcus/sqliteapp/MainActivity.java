@@ -1,6 +1,10 @@
 package org.brohede.marcus.sqliteapp;
 
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
+import android.provider.BaseColumns;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -25,20 +29,21 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private List<Mountain> mountainData = new ArrayList<Mountain>();
+    List itemIds = new ArrayList<>();
     private ArrayAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        new FetchData().execute();
+        //new FetchData().execute();
 
-        //Mountain berg = new Mountain("K2", "Dunno", 53);
-        //Mountain berg2 = new Mountain("K3", "UUUUUH", 42);
-        //mountainData.add(berg);
-        //mountainData.add(berg2);
+        Mountain berg = new Mountain("K2", "Dunno", 53);
+        Mountain berg2 = new Mountain("K3", "UUUUUH", 42);
+        mountainData.add(berg);
+        mountainData.add(berg2);
 
-        adapter = new ArrayAdapter(getApplicationContext(), R.layout.list_item_textview, R.id.my_item_textview, mountainData);
+        adapter = new ArrayAdapter(getApplicationContext(), R.layout.list_item_textview, R.id.my_item_textview, itemIds);
         ListView myListView = (ListView) findViewById(R.id.my_listview);
         myListView.setAdapter(adapter);
 
@@ -50,102 +55,58 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //MountainReaderDbHelper kjell = new MountainReaderDbHelper(getApplicationContext());
+        MountainReaderDbHelper kjell = new MountainReaderDbHelper(getApplicationContext());
+        // Gets the data repository in write mode
+        SQLiteDatabase dbWrite = kjell.getWritableDatabase();
+
+    // Create a new map of values, where column names are the keys
+        ContentValues values = new ContentValues();
+        values.put(MountainReaderContract.MountainEntry.COLUMN_NAME_NAME, "K5");
+        values.put(MountainReaderContract.MountainEntry.COLUMN_NAME_LOCATION, "Dalarna");
+
+    // Insert the new row, returning the primary key value of the new row
+        dbWrite.insert(MountainReaderContract.MountainEntry.TABLE_NAME, null, values);
+
+
+        SQLiteDatabase dbRead = kjell.getReadableDatabase();
+
+        // Define a projection that specifies which columns from the database
+        // you will actually use after this query.
+        String[] projection = {
+                BaseColumns._ID,
+                MountainReaderContract.MountainEntry.COLUMN_NAME_NAME,
+        };
+
+        // Filter results WHERE "title" = 'My Title'
+        String selection = MountainReaderContract.MountainEntry.COLUMN_NAME_NAME + " = ?";
+        String[] selectionArgs = { "K5" };
+
+        // How you want the results sorted in the resulting Cursor
+        String sortOrder =
+                MountainReaderContract.MountainEntry.COLUMN_NAME_NAME + " DESC";
+
+        Cursor cursor = dbRead.query(
+                MountainReaderContract.MountainEntry.TABLE_NAME,   // The table to query
+                projection,             // The array of columns to return (pass null to get all)
+                selection,              // The columns for the WHERE clause
+                selectionArgs,          // The values for the WHERE clause
+                null,                   // don't group the rows
+                null,                   // don't filter by row groups
+                sortOrder               // The sort order
+        );
+
+        while(cursor.moveToNext()) {
+                long itemId = cursor.getLong(
+                        cursor.getColumnIndexOrThrow(MountainReaderContract.MountainEntry._ID));
+                //itemIds.add(itemId);
+                Log.d("klabbe", cursor.getString(cursor.getColumnIndexOrThrow(MountainReaderContract.MountainEntry.COLUMN_NAME_NAME)));
+            }
+        cursor.close();
     }
 
-    private class FetchData extends AsyncTask<Void,Void,String> {
-        @Override
-        protected String doInBackground(Void... params) {
-            // These two variables need to be declared outside the try/catch
-            // so that they can be closed in the finally block.
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
 
-            // Will contain the raw JSON response as a Java string.
-            String jsonStr = null;
-
-            try {
-                // Construct the URL for the Internet service
-                URL url = new URL("http://wwwlab.iit.his.se/brom/kurser/mobilprog/dbservice/admin/getdataasjson.php?type=brom");
-
-                // Create the request to the PHP-service, and open the connection
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
-
-                // Read the input stream into a String
-                InputStream inputStream = urlConnection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
-                if (inputStream == null) {
-                    // Nothing to do.
-                    return null;
-                }
-                reader = new BufferedReader(new InputStreamReader(inputStream));
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
-                    // But it does make debugging a *lot* easier if you print out the completed
-                    // buffer for debugging.
-                    buffer.append(line + "\n");
-                }
-
-                if (buffer.length() == 0) {
-                    // Stream was empty.  No point in parsing.
-                    return null;
-                }
-                jsonStr = buffer.toString();
-                return jsonStr;
-            } catch (IOException e) {
-                Log.e("PlaceholderFragment", "Error ", e);
-                // If the code didn't successfully get the weather data, there's no point in
-                // attempting to parse it.
-                return null;
-            } finally{
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        Log.e("Network error", "Error closing stream", e);
-                    }
-                }
-            }
-        }
-        @Override
-        protected void onPostExecute(String o) {
-            super.onPostExecute(o);
-            // This code executes after we have received our data. The String object o holds
-            // the un-parsed JSON string or is null if we had an IOException during the fetch.
-
-            // Implement a parsing code that loops through the entire JSON and creates objects
-            // of our newly created Mountain class.
-            try {
-                JSONArray json1 = new JSONArray(o);
-                adapter.clear();
-
-                for (int i = 0; i < json1.length(); i++) {
-                    JSONObject berg = json1.getJSONObject(i);
-                    int mountainId = berg.getInt("ID");
-                    String mountainName = berg.getString("name");
-                    String mountainType = berg.getString("type");
-                    String mountainCompany = berg.getString("company");
-                    String mountainLocation = berg.getString("location");
-                    String mountainCategory = berg.getString("category");
-                    int mountainSize = berg.getInt("size");
-                    int mountainCost = berg.getInt("cost");
-                    //JSONArray mountainAuxdata = berg.getJSONArray("auxdata");
-
-                    Mountain m = new Mountain(mountainName, mountainLocation, mountainSize);
-                    adapter.add(m);
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+    //JSON
+}
 
     /*
         TODO: Create an App that stores Mountain data in SQLite database
@@ -177,4 +138,3 @@ public class MainActivity extends AppCompatActivity {
         TODO: The SQLite database must not contain any duplicate mountain names
 
      */
-}

@@ -24,12 +24,16 @@ public class MountainReaderContract {
     }
 
     public static final String SQL_CREATE =
-            "CREATE DATABASE " + MountainEntry.TABLE_NAME + " (" +
+            "CREATE TABLE " + MountainEntry.TABLE_NAME + " (" +
                     MountainEntry._ID + " INTEGER PRIMARY KEY," +
                     MountainEntry.COLUMN_NAME_NAME + " TEXT," +
                     MountainEntry.COLUMN_NAME_LOCATION + " TEXT, " +
-                    MountainEntry.COLUMN_NAME_HEIGHT + " INTEGER" +
+                    MountainEntry.COLUMN_NAME_HEIGHT + " INTEGER," +
                     MountainEntry.COLUMN_NAME_IMGURL + " TEXT," +
-                    MountainEntry.COLUMN_NAME_WIKIURL + " TEXT," + ");";
+                    MountainEntry.COLUMN_NAME_WIKIURL + " TEXT" +
+                    ");";
+
+    public static final String SQL_DELETE_ENTRIES =
+            "DROP TABLE IF EXISTS " + MountainEntry.TABLE_NAME;
 }
 

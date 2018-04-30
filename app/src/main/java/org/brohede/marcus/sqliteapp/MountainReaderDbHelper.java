@@ -18,11 +18,11 @@ public class MountainReaderDbHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(MountainReaderContract.SQL_CREATE);
-        Log.d("olle", MountainReaderContract.SQL_CREATE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-     //   db.execSQL(OTHER_SQL_STRING);
+        db.execSQL(MountainReaderContract.SQL_DELETE_ENTRIES);
+        onCreate(db);
     }
 }
