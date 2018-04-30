@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private List<Mountain> mountainData = new ArrayList<Mountain>();
     private ArrayAdapter adapter;
     MountainReaderDbHelper kjell;
-    private boolean isAscending = false;
+    private boolean isAscendingHeight = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,11 +85,11 @@ public class MainActivity extends AppCompatActivity {
 
         // How you want the results sorted in the resulting Cursor
         String sortOrder;
-        if (isAscending) {
-            sortOrder = MountainReaderContract.MountainEntry.COLUMN_NAME_NAME + " ASC";}
+        if (isAscendingHeight) {
+            sortOrder = MountainReaderContract.MountainEntry.COLUMN_NAME_HEIGHT + " DESC"; //If menu option is checked, list is sorted by heights in descending order
+        }
         else {
-            sortOrder =
-                    MountainReaderContract.MountainEntry.COLUMN_NAME_NAME + " DESC";
+            sortOrder = MountainReaderContract.MountainEntry.COLUMN_NAME_NAME+ " DESC"; //If menu option is not checked (which it isn't to begin with), list is sorted by names in descending order
         }
 
         Cursor cursor = dbRead.query(
@@ -114,8 +114,8 @@ public class MainActivity extends AppCompatActivity {
     }
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        MenuItem checkable = menu.findItem(R.id.sort_name);
-        checkable.setChecked(isAscending);
+        MenuItem checkable = menu.findItem(R.id.sort_height);
+        checkable.setChecked(isAscendingHeight);
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -123,19 +123,18 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
 
         switch (item.getItemId()) {
-            case R.id.sort_name:
-                Log.d("olle1", "v: " + isAscending);
+            case R.id.sort_height:
                 if (item.isChecked()) {
                     item.setChecked(false);
                 }
                 else {
                     item.setChecked(true);
+
                 }
-                isAscending = item.isChecked();
-                Log.d("olle1", "v: " + isAscending);
+                isAscendingHeight = item.isChecked();
                 rereadFromDatabase();
                 return true;
-            case R.id.sort_height:
+            case R.id.refresh_main:
                 rereadFromDatabase();
                 return true;
             default:
