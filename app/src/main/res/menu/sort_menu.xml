@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:title="Sort by height" android:id="@+id/sort_height" android:checkable="true" android:checked="false"></item>
+    <item android:id="@+id/sort_name" android:title="Sort by name"></item>
+    <item android:id="@+id/sort_height" android:title="Sort by height"></item>
     <item android:title="Refresh" android:id="@+id/refresh_main"></item>
 </menu>

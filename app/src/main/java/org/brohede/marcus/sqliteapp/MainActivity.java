@@ -34,7 +34,8 @@ public class MainActivity extends AppCompatActivity {
     private List<Mountain> mountainData = new ArrayList<Mountain>();
     private ArrayAdapter adapter;
     MountainReaderDbHelper kjell;
-    private boolean isAscendingHeight = false;
+    private boolean isDescendingHeight = false;
+    private boolean isAscendingName = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,12 +85,12 @@ public class MainActivity extends AppCompatActivity {
         //String[] selectionArgs = { "Matterhorn" };
 
         // How you want the results sorted in the resulting Cursor
-        String sortOrder;
-        if (isAscendingHeight) {
-            sortOrder = MountainReaderContract.MountainEntry.COLUMN_NAME_HEIGHT + " DESC"; //If menu option is checked, list is sorted by heights in descending order
+        String sortOrder = MountainReaderContract.MountainEntry.COLUMN_NAME_NAME  + " DESC";
+        if (isDescendingHeight) {
+            sortOrder = MountainReaderContract.MountainEntry.COLUMN_NAME_HEIGHT + " DESC";
         }
-        else {
-            sortOrder = MountainReaderContract.MountainEntry.COLUMN_NAME_NAME+ " DESC"; //If menu option is not checked (which it isn't to begin with), list is sorted by names in descending order
+        else if (isAscendingName) {
+            sortOrder = MountainReaderContract.MountainEntry.COLUMN_NAME_NAME+ " ASC";
         }
 
         Cursor cursor = dbRead.query(
@@ -114,8 +115,10 @@ public class MainActivity extends AppCompatActivity {
     }
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        MenuItem checkable = menu.findItem(R.id.sort_height);
-        checkable.setChecked(isAscendingHeight);
+        /*MenuItem checkable = menu.findItem(R.id.sort_height);
+        checkable.setChecked(isDescendingHeight);
+        MenuItem checkableName = menu.findItem(R.id.sort_name);
+        checkableName.setChecked(isAscendingName);*/
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -123,15 +126,14 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
 
         switch (item.getItemId()) {
+            case R.id.sort_name:
+                isDescendingHeight = false;
+                isAscendingName = true;
+                rereadFromDatabase();
+                return true;
             case R.id.sort_height:
-                if (item.isChecked()) {
-                    item.setChecked(false);
-                }
-                else {
-                    item.setChecked(true);
-
-                }
-                isAscendingHeight = item.isChecked();
+                isDescendingHeight = true;
+                isAscendingName = false;
                 rereadFromDatabase();
                 return true;
             case R.id.refresh_main:
